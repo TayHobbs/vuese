@@ -4,6 +4,8 @@ import { parseComponent, compile } from 'vue-template-compiler/build'
 import { BabelParserPlugins } from '@vuese/parser'
 import { parse as babelParse } from '@babel/parser'
 import * as bt from '@babel/types'
+import * as path from 'path'
+import * as fs from 'fs'
 
 type pluginKeys = keyof BabelParserPlugins
 
@@ -16,20 +18,51 @@ export interface AstResult {
 export function sfcToAST(
   source: string,
   babelParserPlugins?: BabelParserPlugins,
+  basedir?: string,
   jsFile?: boolean
 ): AstResult {
   const plugins = getBabelParserPlugins(babelParserPlugins)
   const sfc = parseComponent(source)
   const res: AstResult = {}
 
-  if ((sfc.script && sfc.script.content) || jsFile) {
-    res.sourceType = sfc.script && sfc.script.lang ? sfc.script.lang : 'js'
-    res.jsAst = babelParse(jsFile ? source : sfc.script.content, {
-      sourceType: 'module',
-      plugins
-    })
+  if (sfc.script) {
+    if (!sfc.script.content && sfc.script.src) {
+      // Src Imports
+      if (basedir) {
+        try {
+          sfc.script.content = fs.readFileSync(
+            path.resolve(basedir, sfc.script.src),
+            'utf-8'
+          )
+        } catch (e) {
+          console.error(e)
+          sfc.script.content = ''
+        }
+      }
+    }
   }
-  if (sfc.template && sfc.template.content) {
+
+  res.sourceType = sfc.script && sfc.script.lang ? sfc.script.lang : 'js'
+  res.jsAst = babelParse(jsFile ? source : sfc.script.content, {
+    sourceType: 'module',
+    plugins
+  })
+
+  if (sfc.template) {
+    if (!sfc.template.content && sfc.template.src) {
+      // Src Imports
+      if (basedir) {
+        try {
+          sfc.template.content = fs.readFileSync(
+            path.resolve(basedir, sfc.template.src),
+            'utf-8'
+          )
+        } catch (e) {
+          console.error(e)
+          sfc.template.content = ''
+        }
+      }
+    }
     res.templateAst = compile(sfc.template.content, {
       comments: true
     }).ast

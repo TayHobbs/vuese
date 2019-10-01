@@ -141,6 +141,7 @@ export interface ParserOptions {
     (watch: WatchResult): void
   }
   babelParserPlugins?: BabelParserPlugins
+  basedir?: string
   jsFile?: any
 }
 
@@ -161,7 +162,12 @@ export function parser(
   source: string,
   options: ParserOptions = {}
 ): ParserResult {
-  const astRes = sfcToAST(source, options.babelParserPlugins, options.jsFile)
+  const astRes = sfcToAST(
+    source,
+    options.babelParserPlugins,
+    options.basedir,
+    options.jsFile
+  )
   const res: ParserResult = {}
   const defaultOptions: ParserOptions = {
     onName(name: string) {

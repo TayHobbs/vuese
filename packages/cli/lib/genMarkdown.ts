@@ -34,7 +34,8 @@ export default async (config: CliOptions) => {
     try {
       const parserRes = parser(source, {
         babelParserPlugins,
-        jsFile: abs.endsWith('.js')
+        jsFile: abs.endsWith('.js'),
+        basedir: path.dirname(abs)
       })
       const r = new Render(parserRes)
       let markdownRes = r.renderMarkdown()

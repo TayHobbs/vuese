@@ -6,7 +6,7 @@ import * as fs from 'fs'
 function getAST(fileName: string, jsFile: boolean): AstResult {
   const p = path.resolve(__dirname, `./__fixtures__/${fileName}`)
   const source = fs.readFileSync(p, 'utf-8')
-  return sfcToAST(source, { jsx: false }, jsFile)
+  return sfcToAST(source, { jsx: false }, undefined, jsFile)
 }
 
 test('The type of `jsAst` should be File', () => {

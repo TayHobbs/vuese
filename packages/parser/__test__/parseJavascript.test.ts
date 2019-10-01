@@ -22,7 +22,7 @@ function getAST(
 ): object {
   const p = path.resolve(__dirname, `./__fixtures__/${fileName}`)
   const source = fs.readFileSync(p, 'utf-8')
-  return sfcToAST(source, babelParserPlugins, jsFile)
+  return sfcToAST(source, babelParserPlugins, path.dirname(p), jsFile)
 }
 
 test('Get the component name correctly', () => {
@@ -101,9 +101,7 @@ test('Execute the default function and get the default value correctly', () => {
 
   expect(mockOnProp.mock.calls.length).toBe(6)
   expect(arg.name).toBe('c')
-  expect(arg.default).toEqual({
-    val: 1
-  })
+  expect(arg.default).toEqual('{"val":1}')
 })
 
 test('Get the `required` value correctly', () => {
@@ -690,4 +688,20 @@ test('data in a mixin', () => {
   expect((arg3 as DataResult).type).toMatchSnapshot()
   expect((arg3 as DataResult).describe).toMatchSnapshot()
   expect((arg3 as DataResult).default).toMatchSnapshot()
+})
+
+test('The seperated block should be handled correctly', () => {
+  const sfc: AstResult = getAST('seperate/seperate.vue')
+  const mockOnProp = jest.fn(() => {})
+  const options: ParserOptions = {
+    onProp: mockOnProp
+  }
+  parseJavascript(sfc.jsAst as bt.File, options)
+  const arg = mockOnProp.mock.calls[0][0]
+
+  expect(mockOnProp.mock.calls.length).toBe(1)
+  expect(arg as PropsResult).toEqual({
+    type: null,
+    name: 'a'
+  })
 })
